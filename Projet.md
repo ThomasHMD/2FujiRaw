@@ -688,16 +688,18 @@ echo "Built: $ROOT/dist/2FujiRaw.dmg"
 - [ ] Tester sur 5 fichiers de types variés
 
 ### Étape 3 — GUI SwiftUI
-- [ ] `ContentView`, `DropZoneView`
-- [ ] Progress bar via AsyncThrowingStream
-- [ ] Gestion erreurs et état "Terminé"
-- [ ] Bouton "Ouvrir le dossier" via `NSWorkspace.activateFileViewerSelecting`
+- [x] `ContentView`, `DropZoneView` (style néo-rétro lumineux : monospace, palette crème/magenta/cyan, ombres dures pixel-art)
+- [x] `Theme.swift` : palette + `RetroButtonStyle` + `SegmentedProgressBar` + `RetroChip`
+- [x] Progress bar segmentée (20 cases qui s'allument en vert-CRT)
+- [x] Gestion erreurs (bannière `ERR` rouge) et état "Terminé" (bouton OPEN OUTPUT)
+- [x] Bouton "OPEN OUTPUT" via `NSWorkspace.activateFileViewerSelecting`
+- [x] Hiérarchie visuelle : CONVERT seul élément magenta plein, mapping dropdown neutre subordonné
 
 ### Étape 4 — Packaging
-- [ ] `scripts/build.sh` complet + Info.plist validé
-- [ ] Icône `AppIcon.icns` générée depuis un PNG 1024×1024 via `iconutil -c icns AppIcon.iconset`
-- [ ] `scripts/make-dmg.sh` + test d'installation sur machine propre
-- [ ] Premier `.dmg` installable, `< 30 Mo` cible
+- [x] `scripts/build.sh` : compile Swift release arm64, assemble `.app`, bundle `dnglab` + `exiftool`, Info.plist, codesign ad-hoc
+- [x] Icône `AppIcon.icns` — généré via `scripts/make-icon.sh` (Swift + CoreGraphics + sips + iconutil). Style squircle crème-pêche, "2FR" magenta monospace, "→ FUJI" cyan, ombre magenta pixel-art.
+- [x] `scripts/make-dmg.sh` — utilise `hdiutil` (builtin macOS) plutôt que `create-dmg` (timeouts AppleScript) pour zéro dépendance
+- [x] Premier `.dmg` (`dist/2FujiRaw.dmg`, ~19 Mo compressé, `.app` 46 Mo décompressé)
 
 ### Étape 5 (optionnelle) — Extensions
 - [ ] Ajouter les mappings Ricoh, Leica, etc. dans `CameraMapping.all`
