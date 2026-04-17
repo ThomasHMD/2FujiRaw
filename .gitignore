@@ -1,0 +1,24 @@
+# Build artifacts
+src/.build/
+src/.swiftpm/
+src/Package.resolved
+dist/
+
+# Vendor binaries (fetched via scripts/fetch-deps.sh)
+vendor/
+
+# Sources dnglab clonées au build (scripts/build-dnglab.sh)
+.build-dnglab/
+
+# Samples RAW de test (on ne commit jamais les archives photo)
+test-samples/
+test-samples/**
+
+# macOS
+.DS_Store
+*.swp
+
+# Xcode (si jamais utilisé un jour)
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
