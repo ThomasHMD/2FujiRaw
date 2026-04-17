@@ -6,7 +6,9 @@ App macOS qui convertit des RAW **Hasselblad X2D II 100C** en DNG "maquillés" e
 Nostalgic Neg, Reala Ace…) dans Lightroom Classic sur des fichiers qui ne viennent
 pas d'un boîtier Fuji.
 
-> **Statut** : prototype fonctionnel en ligne de commande. GUI en cours.
+> **Statut** : `v0.1.0` sortie — GUI SwiftUI + `.dmg` installable disponibles
+> dans la dernière [release](https://github.com/ThomasHMD/2FujiRaw/releases).
+> Apple Silicon uniquement pour l'instant.
 
 ## Pourquoi
 
