@@ -62,23 +62,21 @@ build → copie dans `vendor/`).
 3. **Glisse `2FujiRaw.app` sur `Applications`**.
 4. Éjecte le `.dmg` (clic-droit → « Éjecter »), tu peux le supprimer.
 
-### Premier lancement (important)
+### Premier lancement
 
-L'app est signée en **ad-hoc** (pas d'Apple Developer ID — je ne paie pas 99 $/an
-à Apple pour un outil perso gratuit). Au premier lancement, macOS refuse de
-l'ouvrir avec le message :
+L'app est signée en **ad-hoc** (pas de compte Apple Developer). Au premier
+lancement, macOS affiche :
 
 > *« 2FujiRaw » ne peut pas être ouverte car l'identité du développeur ne peut
 > pas être confirmée.*
 
-C'est normal. Pour contourner proprement (une seule fois) :
+Pour contourner, une seule fois :
 
 1. Ouvre `/Applications` dans le Finder.
 2. **Clic-droit** sur `2FujiRaw.app` → `Ouvrir`.
-3. macOS te redemande → clique `Ouvrir`.
+3. Re-clique `Ouvrir` dans la fenêtre de confirmation.
 
-Les lancements suivants se font comme une app normale (double-clic, Launchpad,
-Spotlight…).
+Les lancements suivants se font normalement (double-clic, Launchpad, Spotlight).
 
 ## Build depuis les sources (dev)
 
@@ -102,17 +100,6 @@ Prérequis :
 # 4. Générer le .dmg final
 ./scripts/make-dmg.sh
 ```
-
-### `.app` vs `.dmg` : différence
-
-- **`2FujiRaw.app`** = le logiciel lui-même (un dossier-bundle que macOS
-  exécute). Généré par `scripts/build.sh` dans `dist/`.
-- **`2FujiRaw.dmg`** = une image disque compressée qui **contient** le `.app`,
-  conçue pour être distribuée (1 fichier à télécharger, plus léger, signature
-  d'intégrité macOS). Généré par `scripts/make-dmg.sh` à partir du `.app`.
-
-Côté utilisateur : il télécharge le `.dmg`, glisse le `.app` dans `Applications`,
-éjecte et jette le `.dmg`.
 
 ## Licence
 
