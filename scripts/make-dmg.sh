@@ -1,19 +1,29 @@
 #!/usr/bin/env bash
-# Génère un .dmg distribuable à partir du .app déjà buildé.
+# Génère le .dmg final à partir de dist/2FujiRaw.app
+# Utilise hdiutil (builtin macOS) plutôt que create-dmg pour rester sans
+# dépendance et éviter les timeouts AppleScript.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-command -v create-dmg >/dev/null || { echo "Install create-dmg: brew install create-dmg"; exit 1; }
-[ -d "$ROOT/dist/2FujiRaw.app" ] || "$ROOT/scripts/build.sh"
+DIST="$ROOT/dist"
+APP="$DIST/2FujiRaw.app"
+DMG="$DIST/2FujiRaw.dmg"
 
-cd "$ROOT/dist"
-rm -f 2FujiRaw.dmg
-create-dmg \
-    --volname "2FujiRaw" \
-    --window-size 500 300 \
-    --icon-size 100 \
-    --icon "2FujiRaw.app" 120 150 \
-    --app-drop-link 360 150 \
-    --no-internet-enable \
-    "2FujiRaw.dmg" \
-    "2FujiRaw.app"
-echo "Built: $ROOT/dist/2FujiRaw.dmg"
+[ -d "$APP" ] || "$ROOT/scripts/build.sh"
+
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
+
+# Stage : app + lien symbolique vers /Applications pour le drag & drop
+cp -R "$APP" "$STAGE/"
+ln -s /Applications "$STAGE/Applications"
+
+rm -f "$DMG"
+hdiutil create \
+    -volname "2FujiRaw" \
+    -srcfolder "$STAGE" \
+    -ov \
+    -format UDZO \
+    "$DMG" >/dev/null
+
+SIZE="$(du -sh "$DMG" | awk '{print $1}')"
+echo "Built: $DMG  ($SIZE)"

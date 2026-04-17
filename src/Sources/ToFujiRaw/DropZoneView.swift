@@ -5,35 +5,47 @@ import AppKit
 struct DropZoneView: View {
     @Binding var files: [URL]
     let mapping: CameraMapping
+    let isDisabled: Bool
     @State private var isTargeted = false
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(
-                    isTargeted ? Color.accentColor : Color.secondary,
-                    style: StrokeStyle(lineWidth: 2, dash: [6])
-                )
-                .background(RoundedRectangle(cornerRadius: 12).fill(.quaternary.opacity(0.3)))
+        let borderColor = isTargeted ? Theme.cyan : Theme.ink
+        let fillColor = isTargeted ? Theme.cyan.opacity(0.12) : Color.white.opacity(0.45)
 
-            VStack(spacing: 8) {
-                Image(systemName: "tray.and.arrow.down")
-                    .font(.system(size: 32))
-                    .foregroundStyle(.secondary)
+        ZStack {
+            Rectangle()
+                .fill(fillColor)
+            Rectangle()
+                .stroke(borderColor, style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
+
+            VStack(spacing: 10) {
+                Image(systemName: files.isEmpty ? "tray.and.arrow.down" : "photo.stack")
+                    .font(.system(size: 30, weight: .regular))
+                    .foregroundStyle(borderColor)
+
                 if files.isEmpty {
-                    Text("Glissez vos RAW ici").font(.headline)
-                    Button("+ Ajouter des fichiers") { openPanel() }
-                        .buttonStyle(.bordered)
+                    Text("DROP .3FR / .FFF HERE")
+                        .font(Theme.monoTitle)
+                        .foregroundStyle(Theme.ink)
+                    Button("+ ADD FILES") { openPanel() }
+                        .buttonStyle(RetroButtonStyle(color: Theme.cream, textColor: Theme.ink, isEnabled: !isDisabled))
+                        .disabled(isDisabled)
                 } else {
-                    Text("\(files.count) fichier\(files.count > 1 ? "s" : "") prêt\(files.count > 1 ? "s" : "")")
-                        .font(.headline)
-                    Button("Vider la liste") { files.removeAll() }
-                        .buttonStyle(.bordered)
+                    HStack(spacing: 8) {
+                        RetroChip(label: "\(files.count) READY", color: Theme.magenta)
+                        RetroChip(label: mapping.sourceExtensions.joined(separator: " / "))
+                    }
+                    Button("CLEAR LIST") { files.removeAll() }
+                        .buttonStyle(RetroButtonStyle(color: Theme.cream, textColor: Theme.ink, isEnabled: !isDisabled))
+                        .disabled(isDisabled)
                 }
             }
             .padding()
         }
+        .opacity(isDisabled ? 0.55 : 1)
+        .animation(.easeOut(duration: 0.15), value: isTargeted)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
+            guard !isDisabled else { return false }
             Task { await handleDrop(providers) }
             return true
         }
@@ -44,7 +56,7 @@ struct DropZoneView: View {
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
-        panel.allowedContentTypes = [.item]  // filtrage ensuite par extension
+        panel.allowedContentTypes = [.item]
         if panel.runModal() == .OK {
             addFiles(panel.urls)
         }
@@ -64,13 +76,11 @@ struct DropZoneView: View {
         let allowed = Set(mapping.sourceExtensions.map { $0.lowercased() })
         let filtered = urls.filter { allowed.contains($0.pathExtension.lowercased()) }
         files.append(contentsOf: filtered)
-        // dedupe
         var seen = Set<URL>()
         files = files.filter { seen.insert($0).inserted }
     }
 }
 
-// Extension utilitaire pour NSItemProvider
 private extension NSItemProvider {
     func loadFileURL() async throws -> URL? {
         try await withCheckedThrowingContinuation { cont in
