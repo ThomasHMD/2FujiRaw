@@ -47,6 +47,16 @@ else
     echo "Patch : déjà appliqué, skip."
 fi
 
+# 2b. Compat cargo : certains manifests du tag v0.7.2 demandent edition=2024,
+#     mais le cargo installé sur cette machine est plus ancien. On downgrade
+#     localement vers edition=2021 pour permettre le build.
+echo "Patch : downgrade édition Cargo 2024 -> 2021..."
+find "$BUILD_DIR" -name Cargo.toml -print0 | while IFS= read -r -d '' manifest; do
+    if grep -q 'edition = "2024"' "$manifest"; then
+        sed -i '' 's/edition = "2024"/edition = "2021"/g' "$manifest"
+    fi
+done
+
 # 3. Build release
 echo "Compilation dnglab (cargo release)..."
 (cd "$BUILD_DIR" && cargo build --release --bin dnglab)

@@ -24,7 +24,7 @@ struct DropZoneView: View {
                     .foregroundStyle(borderColor)
 
                 if files.isEmpty {
-                    Text("DROP .3FR / .FFF HERE")
+                    Text("DROP \(mapping.sourceExtensions.map { ".\($0.uppercased())" }.joined(separator: " / ")) HERE")
                         .font(Theme.monoTitle)
                         .foregroundStyle(Theme.ink)
                     Button("+ ADD FILES") { openPanel() }
@@ -46,7 +46,7 @@ struct DropZoneView: View {
         .animation(.easeOut(duration: 0.15), value: isTargeted)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             guard !isDisabled else { return false }
-            Task { await handleDrop(providers) }
+            handleDrop(providers)
             return true
         }
     }
@@ -62,14 +62,38 @@ struct DropZoneView: View {
         }
     }
 
-    private func handleDrop(_ providers: [NSItemProvider]) async {
+    private func handleDrop(_ providers: [NSItemProvider]) {
         var urls: [URL] = []
-        for provider in providers {
-            if let url = try? await provider.loadFileURL() {
-                urls.append(url)
+        let lock = NSLock()
+        let group = DispatchGroup()
+        var hasFinished = false
+
+        func finish() {
+            lock.lock()
+            defer { lock.unlock() }
+            guard !hasFinished else { return }
+            hasFinished = true
+            let dropped = urls
+            DispatchQueue.main.async {
+                addFiles(dropped)
             }
         }
-        await MainActor.run { addFiles(urls) }
+
+        for provider in providers {
+            group.enter()
+            provider.loadFileURL { url in
+                if let url {
+                    lock.lock()
+                    urls.append(url)
+                    lock.unlock()
+                }
+                group.leave()
+            }
+        }
+        group.notify(queue: .global(qos: .userInitiated)) { finish() }
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 5) {
+            finish()
+        }
     }
 
     private func addFiles(_ urls: [URL]) {
@@ -82,12 +106,9 @@ struct DropZoneView: View {
 }
 
 private extension NSItemProvider {
-    func loadFileURL() async throws -> URL? {
-        try await withCheckedThrowingContinuation { cont in
-            _ = self.loadObject(ofClass: URL.self) { url, error in
-                if let error = error { cont.resume(throwing: error) }
-                else { cont.resume(returning: url) }
-            }
+    func loadFileURL(_ completion: @escaping (URL?) -> Void) {
+        _ = self.loadObject(ofClass: URL.self) { url, _ in
+            completion(url)
         }
     }
 }

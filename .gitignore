@@ -5,7 +5,8 @@ src/Package.resolved
 dist/
 
 # Vendor binaries (fetched via scripts/fetch-deps.sh)
-vendor/
+vendor/*
+!vendor/hasselblad_x2d_header.3fr
 
 # Sources dnglab clonées au build (scripts/build-dnglab.sh)
 .build-dnglab/
