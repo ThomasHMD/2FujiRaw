@@ -1,10 +1,12 @@
 # 2FujiRaw
 
-App macOS qui convertit des RAW **Hasselblad X2D II 100C** en DNG "maquillés" en
-**Fuji GFX 100S II**, pour débloquer les **Film Simulations Fuji natives**
-(Provia, Velvia, Astia, Classic Chrome, Classic Neg, Eterna, Acros, Pro Neg Hi/Std,
-Nostalgic Neg, Reala Ace…) dans Lightroom Classic sur des fichiers qui ne viennent
-pas d'un boîtier Fuji.
+App macOS qui convertit des RAW non-Fuji en DNG ou 3FR compatibles avec les
+pipelines Fuji et Hasselblad actuellement supportés.
+
+Mappings disponibles :
+- `Hasselblad X2D II 100C → Fuji GFX 100S II`
+- `Leica DNG → Hasselblad X2D`
+- `Leica DNG → Fuji GFX 100S II`
 
 ---
 
@@ -43,20 +45,35 @@ sur des données **Bayer** → artefacts garantis.
 ## Comment ça marche
 
 ```
-.3FR Hasselblad
+Hasselblad X2D / X2D II .3FR
       │
-      ▼  [1] dnglab convert (patché pour X2D II 100C)
-.dng (Make="Hasselblad", Model="X2D II 100C")
+      ▼  [1] dnglab convert
+.dng Hasselblad
       │
-      ▼  [2] exiftool : spoof des tags + marquage preview DNG 1.4
-.dng (Make="FUJIFILM", Model="GFX 100S II", preview marqué valide)
+      ▼  [2] exiftool : spoof Fuji
+.dng Fuji GFX 100S II
+
+Leica .DNG
       │
-      ▼  [3] import dans Lightroom Classic
-Profils Fuji natifs disponibles (onglet "Camera Matching")
+      ▼  [1] writer Swift natif : Leica → X2D .3FR
+.3fr Hasselblad X2D
+      │
+      ├── sortie directe Hasselblad
+      │
+      ▼  [2] dnglab convert + spoof Fuji
+.dng Fuji GFX 100S II
 ```
 
-Les binaires `dnglab` (patché) et `exiftool` sont bundlés dans le `.app` et
-invoqués en tant que sous-process.
+Les binaires `dnglab` et `exiftool` sont bundlés dans le `.app` et invoqués en
+tant que sous-process. La chaîne Leica → X2D est native Swift.
+
+### Template X2D bundlé
+
+Les conversions Leica n'ont plus besoin d'un donor `.3FR` externe. L'app bundle
+un template X2D tronqué à son en-tête utile
+(`Contents/Resources/templates/hasselblad_x2d_header.3fr`, 16 Kio) et l'utilise
+par défaut. L'option `--donor` côté CLI, et le sélecteur donor dans l'UI,
+servent uniquement d'override.
 
 ### Pourquoi un dnglab patché
 
@@ -108,10 +125,21 @@ Prérequis :
 ./scripts/build.sh
 
 # 3. Tester depuis le CLI sans GUI
-./src/.build/release/ToFujiRaw --cli /path/to/mon_fichier.3FR
+./src/.build/release/ToFujiRaw --cli --mapping hassy-x2d2-to-fuji-gfx100s2 /path/to/mon_fichier.3FR
+./src/.build/release/ToFujiRaw --cli --mapping leica-dng-to-hasselblad-x2d2 /path/to/mon_fichier.DNG
+./src/.build/release/ToFujiRaw --cli --mapping leica-dng-to-fuji-gfx100s2 /path/to/mon_fichier.DNG
 
 # 4. Générer le .dmg final
 ./scripts/make-dmg.sh
+```
+
+Le flag `--donor` reste disponible si vous voulez override le template X2D bundlé :
+
+```bash
+./src/.build/release/ToFujiRaw --cli \
+  --mapping leica-dng-to-hasselblad-x2d2 \
+  --donor /path/to/custom_donor.3FR \
+  /path/to/mon_fichier.DNG
 ```
 
 ## Licence
