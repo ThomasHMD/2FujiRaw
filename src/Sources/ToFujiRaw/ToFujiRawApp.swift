@@ -17,6 +17,6 @@ struct ToFujiRawApp: App {
             ContentView()
         }
         .windowResizability(.contentSize)
-        .defaultSize(width: 540, height: 560)
+        .defaultSize(width: 540, height: 620)
     }
 }
