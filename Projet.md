@@ -726,3 +726,4 @@ echo "Built: $ROOT/dist/2FujiRaw.dmg"
 - exiftool : https://exiftool.org/
 - SwiftPM doc : https://www.swift.org/package-manager/
 - create-dmg : https://github.com/create-dmg/create-dmg
+- **À regarder si reprise** (noté le 25/09/2026) : [abpy/FujifilmCameraProfiles](https://github.com/abpy/FujifilmCameraProfiles). Tables `LookTable` + `ToneCurve` des simulations Fuji (Provia, Velvia, Astia, Classic Chrome, Pro Neg, Eterna, Reala Ace) à greffer dans le `.dcp` Adobe Standard de n'importe quel boîtier avec dcpTool, plus des LUT `.cube` (dont Classic Neg et Nostalgic Neg). Autre voie que le spoof DNG : les simulations directement sur les `.3FR` Hasselblad, sans conversion. Calé sur un capteur X-Trans 4, donc à valider sur le X2D. Pas de licence déclarée sur le dépôt : usage perso OK, à clarifier avant de redistribuer quoi que ce soit dans l'app.
