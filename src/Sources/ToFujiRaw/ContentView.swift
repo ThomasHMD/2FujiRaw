@@ -5,11 +5,23 @@ import AppKit
 struct ContentView: View {
     @State private var files: [URL] = []
     @State private var mapping: CameraMapping = .default
+    @State private var donorFile: URL?
+    @State private var preserveOriginalLeicaBodyInfo = false
     @State private var isConverting = false
-    @State private var progress: (done: Int, total: Int) = (0, 0)
+    @State private var progress = ConversionProgress(
+        processed: 0,
+        total: 0,
+        currentPhase: nil,
+        currentFileFraction: 0,
+        lastOutput: nil
+    )
     @State private var errorMessage: String?
     @State private var lastOutputDir: URL?
     @State private var totalConverted: Int = 0
+
+    private var hasBundledDonorTemplate: Bool {
+        BundledTools.hasEmbeddedX2DDonorTemplate
+    }
 
     var body: some View {
         ZStack {
@@ -34,6 +46,22 @@ struct ContentView: View {
                     .padding(.horizontal, 22)
                     .padding(.vertical, 14)
 
+                if mapping.requiresDonor {
+                    divider
+
+                    donorSection
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 14)
+                }
+
+                if mapping.hasLeicaSource {
+                    divider
+
+                    preserveBodyInfoSection
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 14)
+                }
+
                 divider
 
                 actionSection
@@ -54,7 +82,7 @@ struct ContentView: View {
                     .padding(.vertical, 12)
             }
         }
-        .frame(width: 540, height: 560)
+        .frame(width: 540, height: 620)
     }
 
     // MARK: - Separator
@@ -74,7 +102,7 @@ struct ContentView: View {
                     .font(Theme.monoLarge)
                     .foregroundStyle(Theme.magenta)
                     .tracking(1)
-                Text("HASSELBLAD → FUJI LOOK // LIGHTROOM PROFILES")
+                Text("RAW CAMERA SPOOFER // FUJI + HASSELBLAD TARGETS")
                     .font(Theme.monoCaption)
                     .foregroundStyle(Theme.inkSoft)
             }
@@ -124,19 +152,77 @@ struct ContentView: View {
         }
     }
 
+    private var donorSection: some View {
+        HStack(spacing: 12) {
+            Text(mapping.donorLabel?.uppercased() ?? "DONOR")
+                .font(Theme.monoCaption)
+                .foregroundStyle(Theme.inkSoft)
+                .frame(width: 70, alignment: .leading)
+
+            Button(donorButtonLabel) {
+                pickDonor()
+            }
+            .buttonStyle(RetroButtonStyle(
+                color: Theme.cream,
+                textColor: Theme.ink,
+                isEnabled: !isConverting))
+            .disabled(isConverting)
+
+            if donorFile != nil || hasBundledDonorTemplate {
+                Button(donorFile == nil ? "RESET" : "CLEAR") {
+                    donorFile = nil
+                }
+                .buttonStyle(RetroButtonStyle(
+                    color: Theme.cream,
+                    textColor: Theme.ink,
+                    isEnabled: !isConverting))
+                .disabled(isConverting)
+            }
+
+            Spacer()
+        }
+    }
+
+    private var preserveBodyInfoSection: some View {
+        HStack(spacing: 12) {
+            Text("METADATA")
+                .font(Theme.monoCaption)
+                .foregroundStyle(Theme.inkSoft)
+                .frame(width: 70, alignment: .leading)
+
+            Toggle(isOn: $preserveOriginalLeicaBodyInfo) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("PRESERVE ORIGINAL LEICA BODY NAME")
+                        .font(Theme.monoBody)
+                        .foregroundStyle(Theme.ink)
+                    Text("Replace only the displayed camera model string")
+                        .font(Theme.monoCaption)
+                        .foregroundStyle(Theme.inkSoft)
+                }
+            }
+            .toggleStyle(.checkbox)
+            .disabled(isConverting)
+
+            Spacer()
+        }
+    }
+
     // MARK: - Action section (bouton + progression)
 
     private var actionSection: some View {
         Group {
             if isConverting {
                 VStack(alignment: .leading, spacing: 10) {
-                    SegmentedProgressBar(done: progress.done, total: progress.total)
+                    SegmentedProgressBar(
+                        done: Int(progress.overallFraction * 1000),
+                        total: 1000
+                    )
                     HStack {
-                        Text("CONVERTING \(progress.done) / \(progress.total)")
+                        Text(progressLabel)
                             .font(Theme.monoCaption)
                             .foregroundStyle(Theme.inkSoft)
                         Spacer()
-                        Text("PLEASE WAIT…")
+                        Text(progress.currentPhase ?? "PLEASE WAIT…")
                             .font(Theme.monoCaption)
                             .foregroundStyle(Theme.magenta)
                     }
@@ -149,8 +235,8 @@ struct ContentView: View {
                     .buttonStyle(RetroButtonStyle(
                         color: Theme.magenta,
                         textColor: .white,
-                        isEnabled: !files.isEmpty))
-                    .disabled(files.isEmpty)
+                        isEnabled: canConvert))
+                    .disabled(!canConvert)
 
                     if let dir = lastOutputDir {
                         Button(action: { NSWorkspace.shared.activateFileViewerSelecting([dir]) }) {
@@ -165,7 +251,7 @@ struct ContentView: View {
                     Spacer()
 
                     if !files.isEmpty {
-                        Text("\(files.count) FILE\(files.count > 1 ? "S" : "")")
+                        Text(statusSummary)
                             .font(Theme.monoCaption)
                             .foregroundStyle(Theme.inkSoft)
                     }
@@ -206,7 +292,7 @@ struct ContentView: View {
 
             Spacer()
 
-            Text("dnglab + exiftool")
+            Text("swift + exiftool + dnglab")
                 .font(Theme.monoCaption)
                 .foregroundStyle(Theme.inkSoft)
         }
@@ -214,16 +300,70 @@ struct ContentView: View {
 
     // MARK: - Logic
 
+    private var canConvert: Bool {
+        !files.isEmpty && (!mapping.requiresDonor || donorFile != nil || hasBundledDonorTemplate)
+    }
+
+    private var statusSummary: String {
+        if mapping.requiresDonor && donorFile == nil && !hasBundledDonorTemplate {
+            return "\(files.count) FILE\(files.count > 1 ? "S" : "") · X2D TEMPLATE NEEDED"
+        }
+        if mapping.requiresDonor && donorFile == nil && hasBundledDonorTemplate {
+            return "\(files.count) FILE\(files.count > 1 ? "S" : "") · USING BUNDLED X2D TEMPLATE"
+        }
+        return "\(files.count) FILE\(files.count > 1 ? "S" : "") READY"
+    }
+
+    private var donorButtonLabel: String {
+        if let donorFile {
+            return donorFile.lastPathComponent
+        }
+        if hasBundledDonorTemplate {
+            return "BUNDLED X2D TEMPLATE"
+        }
+        return "SELECT TEMPLATE OVERRIDE"
+    }
+
+    private var progressLabel: String {
+        guard progress.total > 0 else { return "CONVERTING" }
+        let percent = Int((progress.overallFraction * 100).rounded())
+        let activeFile = min(progress.processed + 1, progress.total)
+        return "FILE \(activeFile) / \(progress.total) · \(percent)%"
+    }
+
+    private func pickDonor() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.item]
+        if panel.runModal() == .OK {
+            donorFile = panel.url
+        }
+    }
+
     func runConversion() async {
         errorMessage = nil
         isConverting = true
-        progress = (0, files.count)
+        progress = ConversionProgress(
+            processed: 0,
+            total: files.count,
+            currentPhase: "STARTING",
+            currentFileFraction: 0,
+            lastOutput: nil
+        )
 
-        let engine = ConversionEngine(mapping: mapping)
+        let engine = ConversionEngine(
+            mapping: mapping,
+            donorURL: donorFile,
+            options: ConversionOptions(
+                preserveOriginalLeicaBodyInfo: preserveOriginalLeicaBodyInfo
+            )
+        )
         let batchCount = files.count
         do {
             for try await p in engine.convertBatch(files) {
-                progress = (p.processed, p.total)
+                progress = p
                 if let out = p.lastOutput { lastOutputDir = out.deletingLastPathComponent() }
             }
             totalConverted += batchCount

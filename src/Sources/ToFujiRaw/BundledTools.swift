@@ -13,13 +13,36 @@ enum BundledTools {
     /// avec un dossier `lib/` à côté. On pointe vers le script directement.
     static var exiftool: URL { resolve(bundleRelative: "bin/exiftool/exiftool", devRelative: "exiftool/exiftool") }
 
+    /// Template donor X2D tronqué à l'en-tête utile.
+    static var embeddedX2DDonorTemplate: URL {
+        resolveResource(
+            bundleRelative: "templates/hasselblad_x2d_header.3fr",
+            devRelative: "hasselblad_x2d_header.3fr"
+        )
+    }
+
+    static var hasEmbeddedX2DDonorTemplate: Bool {
+        FileManager.default.fileExists(atPath: embeddedX2DDonorTemplate.path)
+    }
+
     static func verifyAll() throws {
         let fm = FileManager.default
         guard fm.isExecutableFile(atPath: dnglab.path) else {
             throw ToolError.missing("dnglab", path: dnglab.path)
         }
+        try verifyExiftool()
+    }
+
+    static func verifyExiftool() throws {
+        let fm = FileManager.default
         guard fm.isExecutableFile(atPath: exiftool.path) else {
             throw ToolError.missing("exiftool", path: exiftool.path)
+        }
+    }
+
+    static func verifyEmbeddedX2DDonorTemplate() throws {
+        guard hasEmbeddedX2DDonorTemplate else {
+            throw ToolError.missing("embedded X2D donor template", path: embeddedX2DDonorTemplate.path)
         }
     }
 
@@ -40,6 +63,23 @@ enum BundledTools {
             }
         }
         // Par défaut : retourner le chemin bundle (verifyAll remontera l'erreur proprement)
+        return (Bundle.main.resourceURL ?? URL(fileURLWithPath: "/"))
+            .appendingPathComponent(bundleRelative)
+    }
+
+    private static func resolveResource(bundleRelative: String, devRelative: String) -> URL {
+        if let res = Bundle.main.resourceURL {
+            let bundled = res.appendingPathComponent(bundleRelative)
+            if FileManager.default.fileExists(atPath: bundled.path) {
+                return bundled
+            }
+        }
+        for base in devSearchRoots() {
+            let candidate = base.appendingPathComponent("vendor").appendingPathComponent(devRelative)
+            if FileManager.default.fileExists(atPath: candidate.path) {
+                return candidate
+            }
+        }
         return (Bundle.main.resourceURL ?? URL(fileURLWithPath: "/"))
             .appendingPathComponent(bundleRelative)
     }

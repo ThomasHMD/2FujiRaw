@@ -16,10 +16,16 @@ swift build -c release --arch arm64
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 mkdir -p "$APP/Contents/Resources/bin"
+mkdir -p "$APP/Contents/Resources/templates"
 
 cp "$ROOT/src/.build/release/ToFujiRaw" "$APP/Contents/MacOS/2FujiRaw"
 cp "$ROOT/vendor/dnglab" "$APP/Contents/Resources/bin/dnglab"
 cp -R "$ROOT/vendor/exiftool" "$APP/Contents/Resources/bin/exiftool"
+cp "$ROOT/vendor/hasselblad_x2d_header.3fr" "$APP/Contents/Resources/templates/hasselblad_x2d_header.3fr"
+
+# Les outils copiés depuis Dropbox/téléchargements arrivent souvent avec
+# `com.apple.quarantine`, ce qui bloque leur exécution depuis l'app.
+xattr -dr com.apple.quarantine "$APP" || true
 
 # 4. Écrire Info.plist
 cat > "$APP/Contents/Info.plist" <<'PLIST'
