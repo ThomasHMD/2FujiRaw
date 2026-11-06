@@ -1,12 +1,17 @@
 # 2FujiRaw
 
-App macOS qui convertit des RAW non-Fuji en DNG ou 3FR compatibles avec les
-pipelines Fuji et Hasselblad actuellement supportés.
+App macOS qui convertit des RAW qui ne viennent pas d'un boîtier Fuji en DNG
+"maquillés" en **Fuji GFX 100S II**, pour débloquer les **Film Simulations Fuji
+natives** (Provia, Velvia, Astia, Classic Chrome, Classic Neg, Eterna, Acros,
+Pro Neg Hi/Std, Nostalgic Neg, Reala Ace…) dans Lightroom Classic.
 
-Mappings disponibles :
+Conversions disponibles :
 - `Hasselblad X2D II 100C → Fuji GFX 100S II`
-- `Leica DNG → Hasselblad X2D`
 - `Leica DNG → Fuji GFX 100S II`
+- `Leica DNG → Hasselblad X2D`
+
+La conversion Leica est une contribution de [smartfuse](https://github.com/smartfuse)
+([demande n° 1](https://github.com/ThomasHMD/2FujiRaw/pull/1)).
 
 ---
 
@@ -47,7 +52,7 @@ sur des données **Bayer** → artefacts garantis.
 ```
 Hasselblad X2D / X2D II .3FR
       │
-      ▼  [1] dnglab convert
+      ▼  [1] dnglab convert (patché pour X2D II 100C)
 .dng Hasselblad
       │
       ▼  [2] exiftool : spoof Fuji
@@ -63,6 +68,9 @@ Leica .DNG
       ▼  [2] dnglab convert + spoof Fuji
 .dng Fuji GFX 100S II
 ```
+
+Les DNG Fuji s'importent ensuite dans Lightroom Classic : les profils Fuji
+natifs apparaissent dans l'onglet "Camera Matching".
 
 Les binaires `dnglab` et `exiftool` sont bundlés dans le `.app` et invoqués en
 tant que sous-process. La chaîne Leica → X2D est native Swift.
