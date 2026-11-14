@@ -1,5 +1,12 @@
 # 2FujiRaw
 
+> **Nouveau, v0.2.0 (14/11/2026) : le module Lightroom Classic.** La conversion
+> se lance depuis Lightroom, sur les photos sélectionnées, et le DNG Fuji revient
+> empilé sur l'original avec ses mots-clés, sa note et ses retouches. La
+> conversion des DNG Leica est maintenant dans l'app.
+> ➜ [Télécharger la v0.2.0](https://github.com/ThomasHMD/2FujiRaw/releases/tag/v0.2.0) ·
+> [Ce que fait le module](#module-lightroom-classic)
+
 App macOS qui convertit des RAW qui ne viennent pas d'un boîtier Fuji en DNG
 "maquillés" en **Fuji GFX 100S II**, pour débloquer les **Film Simulations Fuji
 natives** (Provia, Velvia, Astia, Classic Chrome, Classic Neg, Eterna, Acros,
