@@ -12,6 +12,7 @@ enum CLI {
 
         var mappingID: String? = nil
         var donorPath: String? = nil
+        var outputDirPath: String? = nil
         var preserveOriginalLeicaBodyInfo = false
         var inputs: [String] = []
         var it = args.makeIterator()
@@ -21,6 +22,8 @@ enum CLI {
                 mappingID = it.next()
             case "--donor":
                 donorPath = it.next()
+            case "--output-dir":
+                outputDirPath = it.next()
             case "--preserve-leica-body-info":
                 preserveOriginalLeicaBodyInfo = true
             case "--help", "-h":
@@ -45,13 +48,17 @@ enum CLI {
 
         let urls = inputs.map { URL(fileURLWithPath: $0) }
         let donorURL = donorPath.map { URL(fileURLWithPath: $0) }
-        let engine = ConversionEngine(
+        var engine = ConversionEngine(
             mapping: mapping,
             donorURL: donorURL,
             options: ConversionOptions(
                 preserveOriginalLeicaBodyInfo: preserveOriginalLeicaBodyInfo
             )
         )
+
+        if let outputDirPath {
+            engine.outputDirectory = URL(fileURLWithPath: outputDirPath, isDirectory: true)
+        }
 
         print("2FujiRaw CLI — mapping: \(mapping.label)")
         print("→ \(urls.count) fichier(s) à convertir")
@@ -81,11 +88,13 @@ enum CLI {
 
     private static func printUsage() {
         let usage = """
-        Usage : ToFujiRaw --cli [--mapping <id>] [--donor <file.3fr>] <file1> [<file2> ...]
+        Usage : ToFujiRaw --cli [--mapping <id>] [--donor <file.3fr>] [--output-dir <dossier>] <file1> [<file2> ...]
 
         Options :
           --mapping <id>   ID de mapping (défaut : \(CameraMapping.default.id))
           --donor <file>   Override le template X2D bundlé pour les mappings Leica
+          --output-dir <dossier>
+                            Écrit les fichiers dans ce dossier (défaut : un sous-dossier à côté de la source)
           --preserve-leica-body-info
                             Remplace uniquement la chaîne Model par le modèle Leica source
           --help, -h       Affiche cette aide

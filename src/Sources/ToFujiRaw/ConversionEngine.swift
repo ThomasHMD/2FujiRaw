@@ -43,6 +43,8 @@ struct ConversionEngine {
 
     enum OverwriteStrategy { case skip, overwrite, suffix }
     var overwriteStrategy: OverwriteStrategy = .suffix
+    /// Dossier de sortie imposé (CLI `--output-dir`, module Lightroom) ; nil = `<source>/<outputDirectoryName>/`.
+    var outputDirectory: URL? = nil
 
     init(mapping: CameraMapping, donorURL: URL?, options: ConversionOptions = .default) {
         self.mapping = mapping
@@ -58,7 +60,7 @@ struct ConversionEngine {
         _ source: URL,
         progressHandler: ((String, Double) -> Void)? = nil
     ) async throws -> URL {
-        let outputDir = source.deletingLastPathComponent()
+        let outputDir = outputDirectory ?? source.deletingLastPathComponent()
             .appendingPathComponent(mapping.outputDirectoryName, isDirectory: true)
 
         do {

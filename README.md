@@ -19,7 +19,11 @@ La conversion Leica est une contribution de [smartfuse](https://github.com/smart
 
 ### ➜ [**2FujiRaw.dmg** (dernière release)](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw.dmg)
 
-~19 Mo · macOS 13+ · Apple Silicon (arm64) · signé ad-hoc
+~20 Mo · macOS 13+ · Apple Silicon (arm64) · signé ad-hoc
+
+### ➜ [**2FujiRaw-Lightroom.zip**, le module Lightroom Classic](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw-Lightroom.zip)
+
+~15 Mo · la même conversion depuis Lightroom, app comprise (cf [Module Lightroom Classic](#module-lightroom-classic))
 
 Voir toutes les versions et leur changelog dans
 [Releases](https://github.com/ThomasHMD/2FujiRaw/releases) ·
@@ -116,6 +120,39 @@ Pour contourner, une seule fois :
 
 Les lancements suivants se font normalement (double-clic, Launchpad, Spotlight).
 
+## Module Lightroom Classic
+
+La même conversion, sans quitter Lightroom : **Bibliothèque ▸ Modules externes ▸
+Convertir en Fuji GFX 100S II…** (aussi dans **Fichier ▸ Modules externes**),
+sur les photos sélectionnées.
+
+- Prend les Hasselblad `.3FR` / `.FFF` et les Leica `.DNG` ; le reste de la
+  sélection est laissé de côté (le bilan dit pourquoi).
+- Le DNG Fuji s'écrit à côté de l'original et entre au catalogue, **empilé
+  au-dessus de lui** (Lightroom n'empile que dans un même dossier). Pile
+  décochée : il va dans `DNG-Fuji-Converted/`, comme avec l'app.
+- Reprend mots-clés, collections, note, drapeau, libellé, titre, légende, et
+  les **réglages Développement** de l'original (décochable), **sauf le profil**.
+- Applique en option un **paramètre prédéfini** de développement. Pour une
+  simulation Fuji d'office : un paramètre prédéfini avec seulement le profil
+  coché (Classic Chrome…), ou Préférences ▸ Paramètres prédéfinis ▸ Valeurs
+  par défaut Raw ▸ GFX 100S II, que Lightroom applique seul à chaque import.
+
+**Installation** : télécharger `2FujiRaw-Lightroom.zip` dans la
+[dernière release](https://github.com/ThomasHMD/2FujiRaw/releases/latest),
+le dézipper, puis Fichier ▸ Gestionnaire de modules externes ▸ Ajouter ▸
+`2FujiRaw.lrplugin`. Le module embarque sa propre copie de l'app (inutile
+d'installer le `.dmg`) et lève lui-même la quarantaine macOS au premier usage.
+Mac Apple Silicon seulement, Lightroom Classic 10 ou plus récent.
+
+Sans copie embarquée, le module cherche l'app dans `/Applications` puis
+`~/Applications`, ou au chemin réglé dans le Gestionnaire de modules externes.
+
+Les sources sont dans [`lightroom/`](./lightroom) : `Convertir.lua` (fenêtre et
+boucle), `Conversion.lua` (une photo), `Outil.lua` (appel de la CLI),
+`Regles.lua` (les décisions, sans SDK). Le SDK Lightroom n'a aucun point
+d'entrée dans l'import : la conversion se lance après coup.
+
 ## Build depuis les sources (dev)
 
 Prérequis :
@@ -139,7 +176,23 @@ Prérequis :
 
 # 4. Générer le .dmg final
 ./scripts/make-dmg.sh
+
+# 5. Module Lightroom : dist/2FujiRaw.lrplugin + dist/2FujiRaw-Lightroom.zip
+#    (--installer : le copie aussi dans les modules externes de Lightroom de ce Mac)
+./scripts/make-lrplugin.sh
+
+# Contrôles du module : règles seules, puis le module entier sur un SDK simulé
+# avec la vraie app, sur la COPIE d'un .3FR
+lua lightroom/tests/test_hors_lr.lua
+lua lightroom/tests/test_avec_cli.lua /chemin/copie.3FR "$PWD/dist/2FujiRaw.app"
 ```
+
+Essai dans le vrai Lightroom, sans interface : `lightroom/tests/essai_lightroom.py`
+passe par un module d'essai qui exécute du Lua envoyé par fichier (celui de
+SpektraLR chez l'auteur), importe la copie d'un `.3FR`, la convertit, relève
+ce que voit Lightroom (Fujifilm GFX 100S II, profil par défaut PROVIA, pile,
+note, mot-clé, collection, réglages) et exporte un JPEG par simulation. Passé
+le 14/11/2026 sur Lightroom Classic 16.0.
 
 Le flag `--donor` reste disponible si vous voulez override le template X2D bundlé :
 
