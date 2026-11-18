@@ -1,207 +1,209 @@
+**English** | [Français](README.fr.md)
+
 # 2FujiRaw
 
-> **Nouveau, v0.2.0 (14/11/2026) : le module Lightroom Classic.** La conversion
-> se lance depuis Lightroom, sur les photos sélectionnées, et le DNG Fuji revient
-> empilé sur l'original avec ses mots-clés, sa note et ses retouches. La
-> conversion des DNG Leica est maintenant dans l'app.
-> ➜ [Télécharger la v0.2.0](https://github.com/ThomasHMD/2FujiRaw/releases/tag/v0.2.0) ·
-> [Ce que fait le module](#module-lightroom-classic)
+> **New, v0.2.0 (14/11/2026): the Lightroom Classic plug-in.** The conversion
+> runs from inside Lightroom, on the selected photos, and the Fuji DNG comes
+> back stacked on the original with its keywords, rating and edits. Leica DNG
+> conversion is now in the app.
+> ➜ [Download v0.2.0](https://github.com/ThomasHMD/2FujiRaw/releases/tag/v0.2.0) ·
+> [What the plug-in does](#lightroom-classic-plug-in)
 
-App macOS qui convertit des RAW qui ne viennent pas d'un boîtier Fuji en DNG
-"maquillés" en **Fuji GFX 100S II**, pour débloquer les **Film Simulations Fuji
-natives** (Provia, Velvia, Astia, Classic Chrome, Classic Neg, Eterna, Acros,
-Pro Neg Hi/Std, Nostalgic Neg, Reala Ace…) dans Lightroom Classic.
+A macOS app that converts RAW files from non-Fuji cameras into DNGs "disguised"
+as a **Fuji GFX 100S II**, to unlock the **native Fujifilm Film Simulations**
+(Provia, Velvia, Astia, Classic Chrome, Classic Neg, Eterna, Acros, Pro Neg
+Hi/Std, Nostalgic Neg, Reala Ace…) in Lightroom Classic.
 
-Conversions disponibles :
+Available conversions:
 - `Hasselblad X2D II 100C → Fuji GFX 100S II`
 - `Leica DNG → Fuji GFX 100S II`
 - `Leica DNG → Hasselblad X2D`
 
-La conversion Leica est une contribution de [smartfuse](https://github.com/smartfuse)
-([demande n° 1](https://github.com/ThomasHMD/2FujiRaw/pull/1)).
+The Leica conversion is a contribution from [smartfuse](https://github.com/smartfuse)
+([request no. 1](https://github.com/ThomasHMD/2FujiRaw/pull/1)).
 
 ---
 
-## Télécharger
+## Download
 
-### ➜ [**2FujiRaw.dmg** (dernière release)](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw.dmg)
+### ➜ [**2FujiRaw.dmg** (latest release)](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw.dmg)
 
-~20 Mo · macOS 13+ · Apple Silicon (arm64) · signé ad-hoc
+~20 MB · macOS 13+ · Apple Silicon (arm64) · ad-hoc signed
 
-### ➜ [**2FujiRaw-Lightroom.zip**, le module Lightroom Classic](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw-Lightroom.zip)
+### ➜ [**2FujiRaw-Lightroom.zip**, the Lightroom Classic plug-in](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw-Lightroom.zip)
 
-~15 Mo · la même conversion depuis Lightroom, app comprise (cf [Module Lightroom Classic](#module-lightroom-classic))
+~15 MB · the same conversion from Lightroom, app included (see [Lightroom Classic plug-in](#lightroom-classic-plug-in))
 
-Voir toutes les versions et leur changelog dans
+See all versions and their changelog in
 [Releases](https://github.com/ThomasHMD/2FujiRaw/releases) ·
-[Dernière release](https://github.com/ThomasHMD/2FujiRaw/releases/latest).
+[Latest release](https://github.com/ThomasHMD/2FujiRaw/releases/latest).
 
-Le **code source** est ce repo même — licence GPL-3.0-or-later, cf
+The **source code** is this very repo, licensed GPL-3.0-or-later, see
 [`LICENSE`](./LICENSE).
 
 ---
 
-## Pourquoi
+## Why
 
-Les Film Simulations Fuji ne sont pas des fichiers `.dcp` sur disque : elles sont
-hardcodées dans le plugin Camera Raw d'Adobe et appliquées automatiquement quand
-Lightroom détecte un fichier venant d'un boîtier Fuji. Le filtre se fait sur les
-tags `Make` / `Model` / `UniqueCameraModel` du RAW.
+Fuji Film Simulations are not `.dcp` files on disk: they are hardcoded in Adobe's
+Camera Raw plug-in and applied automatically when Lightroom detects a file from a
+Fuji camera. The filter relies on the `Make` / `Model` / `UniqueCameraModel` tags
+of the RAW.
 
-En convertissant un `.3FR` Hasselblad en **DNG** (format TIFF standard), Lightroom
-perd le lien avec le parseur propriétaire Hasselblad et se base uniquement sur les
-tags TIFF. On peut donc les spoofer pour pointer vers un boîtier Fuji équivalent.
+When a Hasselblad `.3FR` is converted to **DNG** (a standard TIFF format),
+Lightroom loses the link to the proprietary Hasselblad parser and relies only on
+the TIFF tags. They can therefore be spoofed to point to an equivalent Fuji
+camera.
 
-**Pourquoi le GFX 100S II et pas un X-T5 ?** Le Hasselblad X2D II 100C et le Fuji
-GFX 100S II partagent physiquement le **même capteur Sony IMX461** (100 Mpx,
-démosaïque Bayer). Le spoof est donc transparent pour le moteur de démosaïque de
-Camera Raw. Spoofer vers un X-T5 imposerait une démosaïque **X-Trans** (différente)
-sur des données **Bayer** → artefacts garantis.
+**Why the GFX 100S II and not an X-T5?** The Hasselblad X2D II 100C and the Fuji
+GFX 100S II physically share the **same Sony IMX461 sensor** (100 MP, Bayer
+demosaicing). The spoof is therefore transparent to Camera Raw's demosaicing
+engine. Spoofing to an X-T5 would force **X-Trans** demosaicing (a different one)
+onto **Bayer** data → guaranteed artifacts.
 
-## Comment ça marche
+## How it works
 
 ```
 Hasselblad X2D / X2D II .3FR
       │
-      ▼  [1] dnglab convert (patché pour X2D II 100C)
+      ▼  [1] dnglab convert (patched for X2D II 100C)
 .dng Hasselblad
       │
-      ▼  [2] exiftool : spoof Fuji
+      ▼  [2] exiftool: Fuji spoof
 .dng Fuji GFX 100S II
 
 Leica .DNG
       │
-      ▼  [1] writer Swift natif : Leica → X2D .3FR
+      ▼  [1] native Swift writer: Leica → X2D .3FR
 .3fr Hasselblad X2D
       │
-      ├── sortie directe Hasselblad
+      ├── direct Hasselblad output
       │
-      ▼  [2] dnglab convert + spoof Fuji
+      ▼  [2] dnglab convert + Fuji spoof
 .dng Fuji GFX 100S II
 ```
 
-Les DNG Fuji s'importent ensuite dans Lightroom Classic : les profils Fuji
-natifs apparaissent dans l'onglet "Camera Matching".
+The Fuji DNGs are then imported into Lightroom Classic: the native Fuji profiles
+show up in the "Camera Matching" tab.
 
-Les binaires `dnglab` et `exiftool` sont bundlés dans le `.app` et invoqués en
-tant que sous-process. La chaîne Leica → X2D est native Swift.
+The `dnglab` and `exiftool` binaries are bundled in the `.app` and called as
+subprocesses. The Leica → X2D chain is native Swift.
 
-### Template X2D bundlé
+### Bundled X2D template
 
-Les conversions Leica n'ont plus besoin d'un donor `.3FR` externe. L'app bundle
-un template X2D tronqué à son en-tête utile
-(`Contents/Resources/templates/hasselblad_x2d_header.3fr`, 16 Kio) et l'utilise
-par défaut. L'option `--donor` côté CLI, et le sélecteur donor dans l'UI,
-servent uniquement d'override.
+Leica conversions no longer need an external `.3FR` donor. The app bundles an X2D
+template truncated to its useful header
+(`Contents/Resources/templates/hasselblad_x2d_header.3fr`, 16 KiB) and uses it by
+default. The `--donor` option on the CLI side, and the donor picker in the UI,
+only serve as an override.
 
-### Pourquoi un dnglab patché
+### Why a patched dnglab
 
-`dnglab 0.7.2` officiel ne reconnaît que le **X2D 100C** (2022), pas le
-**X2D II 100C** (2024). Comme les deux boîtiers partagent le même capteur,
-on ajoute simplement deux lignes d'alias dans
-`rawler/data/cameras/hasselblad/x2d_100c.toml` et on recompile. Le script
-`scripts/build-dnglab.sh` fait ça automatiquement (clone v0.7.2 → patch → cargo
-build → copie dans `vendor/`).
+The official `dnglab 0.7.2` only recognizes the **X2D 100C** (2022), not the
+**X2D II 100C** (2024). Since both cameras share the same sensor, I simply add two
+alias lines in `rawler/data/cameras/hasselblad/x2d_100c.toml` and recompile. The
+`scripts/build-dnglab.sh` script does this automatically (clone v0.7.2 → patch →
+cargo build → copy into `vendor/`).
 
-## Installation (utilisateur final)
+## Installation (end user)
 
-1. Télécharge le `.dmg` depuis la dernière [release GitHub](https://github.com/ThomasHMD/2FujiRaw/releases).
-2. Double-clique dessus : macOS monte une fenêtre avec l'icône `2FujiRaw.app`
-   et un raccourci `Applications`.
-3. **Glisse `2FujiRaw.app` sur `Applications`**.
-4. Éjecte le `.dmg` (clic-droit → « Éjecter »), tu peux le supprimer.
+1. Download the `.dmg` from the latest [GitHub release](https://github.com/ThomasHMD/2FujiRaw/releases).
+2. Double-click it: macOS mounts a window with the `2FujiRaw.app` icon and an
+   `Applications` shortcut.
+3. **Drag `2FujiRaw.app` onto `Applications`**.
+4. Eject the `.dmg` (right-click → "Eject"), you can delete it.
 
-### Premier lancement
+### First launch
 
-L'app est signée en **ad-hoc** (pas de compte Apple Developer). Au premier
-lancement, macOS affiche :
+The app is signed **ad-hoc** (no Apple Developer account). On first launch, macOS
+shows:
 
-> *« 2FujiRaw » ne peut pas être ouverte car l'identité du développeur ne peut
-> pas être confirmée.*
+> *"2FujiRaw" can't be opened because the developer cannot be verified.*
 
-Pour contourner, une seule fois :
+To get around it, once only:
 
-1. Ouvre `/Applications` dans le Finder.
-2. **Clic-droit** sur `2FujiRaw.app` → `Ouvrir`.
-3. Re-clique `Ouvrir` dans la fenêtre de confirmation.
+1. Open `/Applications` in the Finder.
+2. **Right-click** `2FujiRaw.app` → `Open`.
+3. Click `Open` again in the confirmation window.
 
-Les lancements suivants se font normalement (double-clic, Launchpad, Spotlight).
+Later launches work normally (double-click, Launchpad, Spotlight).
 
-## Module Lightroom Classic
+## Lightroom Classic plug-in
 
-La même conversion, sans quitter Lightroom : **Bibliothèque ▸ Modules externes ▸
-Convertir en Fuji GFX 100S II…** (aussi dans **Fichier ▸ Modules externes**),
-sur les photos sélectionnées.
+The same conversion, without leaving Lightroom: **Library ▸ Plug-in Extras ▸
+Convert to Fuji GFX 100S II…** (also in **File ▸ Plug-in Extras**), on the
+selected photos.
 
-- Prend les Hasselblad `.3FR` / `.FFF` et les Leica `.DNG` ; le reste de la
-  sélection est laissé de côté (le bilan dit pourquoi).
-- Le DNG Fuji s'écrit à côté de l'original et entre au catalogue, **empilé
-  au-dessus de lui** (Lightroom n'empile que dans un même dossier). Pile
-  décochée : il va dans `DNG-Fuji-Converted/`, comme avec l'app.
-- Reprend mots-clés, collections, note, drapeau, libellé, titre, légende, et
-  les **réglages Développement** de l'original (décochable), **sauf le profil**.
-- Applique en option un **paramètre prédéfini** de développement. Pour une
-  simulation Fuji d'office : un paramètre prédéfini avec seulement le profil
-  coché (Classic Chrome…), ou Préférences ▸ Paramètres prédéfinis ▸ Valeurs
-  par défaut Raw ▸ GFX 100S II, que Lightroom applique seul à chaque import.
+- Takes Hasselblad `.3FR` / `.FFF` and Leica `.DNG` files; the rest of the
+  selection is left aside (the summary says why).
+- The Fuji DNG is written next to the original and enters the catalog,
+  **stacked above it** (Lightroom only stacks within one folder). With the stack
+  option unchecked, it goes into `DNG-Fuji-Converted/`, as with the app.
+- Carries over keywords, collections, rating, flag, label, title, caption, and
+  the original's **Develop settings** (can be unchecked), **except the profile**.
+- Optionally applies a develop **preset**. For a Fuji simulation by default: a
+  preset with only the profile ticked (Classic Chrome…), or Preferences ▸ Presets
+  ▸ Raw Defaults ▸ GFX 100S II, which Lightroom then applies by itself on every
+  import.
 
-**Installation** : télécharger `2FujiRaw-Lightroom.zip` dans la
-[dernière release](https://github.com/ThomasHMD/2FujiRaw/releases/latest),
-le dézipper, puis Fichier ▸ Gestionnaire de modules externes ▸ Ajouter ▸
-`2FujiRaw.lrplugin`. Le module embarque sa propre copie de l'app (inutile
-d'installer le `.dmg`) et lève lui-même la quarantaine macOS au premier usage.
-Mac Apple Silicon seulement, Lightroom Classic 10 ou plus récent.
+**Installation**: download `2FujiRaw-Lightroom.zip` from the
+[latest release](https://github.com/ThomasHMD/2FujiRaw/releases/latest), unzip
+it, then File ▸ Plug-in Manager ▸ Add ▸ `2FujiRaw.lrplugin`. The plug-in ships
+with its own copy of the app (no need to install the `.dmg`) and lifts the macOS
+quarantine itself on first use. Apple Silicon Mac only, Lightroom Classic 10 or
+newer.
 
-Sans copie embarquée, le module cherche l'app dans `/Applications` puis
-`~/Applications`, ou au chemin réglé dans le Gestionnaire de modules externes.
+Without an embedded copy, the plug-in looks for the app in `/Applications`, then
+`~/Applications`, or at the path set in the Plug-in Manager.
 
-Les sources sont dans [`lightroom/`](./lightroom) : `Convertir.lua` (fenêtre et
-boucle), `Conversion.lua` (une photo), `Outil.lua` (appel de la CLI),
-`Regles.lua` (les décisions, sans SDK). Le SDK Lightroom n'a aucun point
-d'entrée dans l'import : la conversion se lance après coup.
+The sources are in [`lightroom/`](./lightroom): `Convertir.lua` (window and loop),
+`Conversion.lua` (one photo), `Outil.lua` (CLI call), `Regles.lua` (the
+decisions, SDK-free). The Lightroom SDK has no entry point in the import: the
+conversion runs afterwards.
 
-## Build depuis les sources (dev)
+## Build from source (dev)
 
-Prérequis :
-- macOS 13+ sur Apple Silicon (arm64)
-- Swift 5.9+ (livré avec les Command Line Tools Xcode)
-- [Rust + cargo](https://rustup.rs) (pour compiler le dnglab patché)
-- `unzip`, `curl`, `hdiutil` (déjà présents sur macOS — zéro dépendance tierce
-  pour le `.dmg`)
+Requirements:
+- macOS 13+ on Apple Silicon (arm64)
+- Swift 5.9+ (shipped with the Xcode Command Line Tools)
+- [Rust + cargo](https://rustup.rs) (to compile the patched dnglab)
+- `unzip`, `curl`, `hdiutil` (already on macOS, zero third-party dependency for
+  the `.dmg`)
 
 ```bash
-# 1. Fetch les dépendances (compile dnglab patché + télécharge exiftool portable)
+# 1. Fetch dependencies (builds patched dnglab + downloads portable exiftool)
 ./scripts/fetch-deps.sh
 
-# 2. Builder l'app (compile Swift release + assemble .app + codesign ad-hoc)
+# 2. Build the app (Swift release build + assembles the .app + ad-hoc codesign)
 ./scripts/build.sh
 
-# 3. Tester depuis le CLI sans GUI
+# 3. Test from the CLI, no GUI
 ./src/.build/release/ToFujiRaw --cli --mapping hassy-x2d2-to-fuji-gfx100s2 /path/to/mon_fichier.3FR
 ./src/.build/release/ToFujiRaw --cli --mapping leica-dng-to-hasselblad-x2d2 /path/to/mon_fichier.DNG
 ./src/.build/release/ToFujiRaw --cli --mapping leica-dng-to-fuji-gfx100s2 /path/to/mon_fichier.DNG
 
-# 4. Générer le .dmg final
+# 4. Build the final .dmg
 ./scripts/make-dmg.sh
 
-# 5. Module Lightroom : dist/2FujiRaw.lrplugin + dist/2FujiRaw-Lightroom.zip
-#    (--installer : le copie aussi dans les modules externes de Lightroom de ce Mac)
+# 5. Lightroom plug-in: dist/2FujiRaw.lrplugin + dist/2FujiRaw-Lightroom.zip
+#    (--installer: also copies it into this Mac's Lightroom plug-ins)
 ./scripts/make-lrplugin.sh
 
-# Contrôles du module : règles seules, puis le module entier sur un SDK simulé
-# avec la vraie app, sur la COPIE d'un .3FR
+# Plug-in checks: rules only, then the whole plug-in on a simulated SDK
+# with the real app, on a COPY of a .3FR
 lua lightroom/tests/test_hors_lr.lua
 lua lightroom/tests/test_avec_cli.lua /chemin/copie.3FR "$PWD/dist/2FujiRaw.app"
 ```
 
-Essai dans le vrai Lightroom, sans interface : `lightroom/tests/essai_lightroom.py`
-passe par un module d'essai qui exécute du Lua envoyé par fichier (celui de
-SpektraLR chez l'auteur), importe la copie d'un `.3FR`, la convertit, relève
-ce que voit Lightroom (Fujifilm GFX 100S II, profil par défaut PROVIA, pile,
-note, mot-clé, collection, réglages) et exporte un JPEG par simulation. Passé
-le 14/11/2026 sur Lightroom Classic 16.0.
+Test in the real Lightroom, headless: `lightroom/tests/essai_lightroom.py` goes
+through a test plug-in that runs Lua sent by file (the one from SpektraLR on my
+machine), imports the copy of a `.3FR`, converts it, reads back what Lightroom
+sees (Fujifilm GFX 100S II, default PROVIA profile, stack, rating, keyword,
+collection, settings) and exports one JPEG per simulation. Passed on 14/11/2026
+on Lightroom Classic 16.0.
 
-Le flag `--donor` reste disponible si vous voulez override le template X2D bundlé :
+The `--donor` flag remains available if you want to override the bundled X2D
+template:
 
 ```bash
 ./src/.build/release/ToFujiRaw --cli \
@@ -210,36 +212,37 @@ Le flag `--donor` reste disponible si vous voulez override le template X2D bundl
   /path/to/mon_fichier.DNG
 ```
 
-## Licence
+## License
 
-2FujiRaw est distribué sous **GPL-3.0-or-later** (cf [`LICENSE`](./LICENSE)).
+2FujiRaw is distributed under **GPL-3.0-or-later** (see [`LICENSE`](./LICENSE)).
 
-Ce choix s'impose parce que le `.dmg` bundle **dnglab** (LGPL-2.1) et **exiftool**
-(Artistic / GPL) : GPL-3 est la licence la plus simple qui reste compatible avec
-les deux tout en garantissant que toute modification redistribuée reste libre.
+This choice is needed because the `.dmg` bundles **dnglab** (LGPL-2.1) and
+**exiftool** (Artistic / GPL): GPL-3 is the simplest license that stays
+compatible with both while ensuring that any redistributed modification remains
+free.
 
-Les licences complètes des dépendances tierces embarquées sont dans
+The full licenses of the embedded third-party dependencies are in
 [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md).
 
 ## Disclaimer
 
-Projet indépendant, **non affilié** à Adobe, Fujifilm ou Hasselblad. Les marques
-« Fujifilm », « GFX 100S II », « Hasselblad », « X2D II 100C », « Lightroom » et
-les noms de Film Simulations (Provia, Velvia, Classic Chrome, etc.) appartiennent
-à leurs propriétaires respectifs.
+Independent project, **not affiliated** with Adobe, Fujifilm or Hasselblad. The
+trademarks "Fujifilm", "GFX 100S II", "Hasselblad", "X2D II 100C", "Lightroom"
+and the names of Film Simulations (Provia, Velvia, Classic Chrome, etc.) belong
+to their respective owners.
 
-2FujiRaw ne redistribue **aucun code ni aucun profil** appartenant à Adobe,
-Fujifilm ou Hasselblad. Il se contente de :
-- convertir vos propres fichiers RAW en DNG (via dnglab, LGPL)
-- réécrire les tags TIFF standards de ces DNG (via exiftool, Artistic/GPL)
+2FujiRaw does **not redistribute any code or profile** belonging to Adobe,
+Fujifilm or Hasselblad. It only:
+- converts your own RAW files to DNG (via dnglab, LGPL)
+- rewrites the standard TIFF tags of these DNGs (via exiftool, Artistic/GPL)
 
-Usage à vos propres risques, conformément aux conditions d'utilisation du logiciel
-que vous utilisez pour ouvrir les DNG produits.
+Use at your own risk, in accordance with the terms of use of the software you use
+to open the produced DNGs.
 
-## Références
+## References
 
-- Méthode originale (spoofing DNG pour débloquer les profils Fuji) :
+- Original method (DNG spoofing to unlock Fuji profiles):
   [rbrant.substack.com](https://rbrant.substack.com/p/how-to-use-fujifilm-profiles-with)
-- [dnglab](https://github.com/dnglab/dnglab) — convertisseur RAW → DNG
-- [ExifTool](https://exiftool.org/) — lecture / écriture de métadonnées
-- [Spec DNG 1.4 Adobe](https://helpx.adobe.com/photoshop/digital-negative.html)
+- [dnglab](https://github.com/dnglab/dnglab): RAW → DNG converter
+- [ExifTool](https://exiftool.org/): metadata reading / writing
+- [Adobe DNG 1.4 spec](https://helpx.adobe.com/photoshop/digital-negative.html)
