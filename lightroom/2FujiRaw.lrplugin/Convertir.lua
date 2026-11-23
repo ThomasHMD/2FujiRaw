@@ -77,6 +77,9 @@ LrFunctionContext.postAsyncTaskWithContext(TITRE, function(context)
   local aConvertir, ignores = {}, {}
   for _, photo in ipairs(catalogue:getTargetPhotos()) do
     local mapping, raison = Regles.mapping(photo:getRawMetadata('path'), photo:getFormattedMetadata('cameraMake'))
+    if mapping and Outil.estWindows() and mapping == Regles.MAPPING_LEICA then
+      mapping, raison = nil, Outil.t('leica_win')
+    end
     if mapping then
       aConvertir[#aConvertir + 1] = photo
     else
@@ -90,7 +93,7 @@ LrFunctionContext.postAsyncTaskWithContext(TITRE, function(context)
   end
   local exe, erreurOutil = Outil.trouver()
   if not exe then
-    LrDialogs.message('2FujiRaw est introuvable.', erreurOutil, 'critical')
+    LrDialogs.message(Outil.estWindows() and Outil.t('outils_titre') or '2FujiRaw est introuvable.', erreurOutil, 'critical')
     return
   end
 

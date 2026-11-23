@@ -1,0 +1,207 @@
+# Module Lightroom Windows : compile dnglab (patché X2D II) pour Windows, assemble
+# 2FujiRaw-Lightroom-Windows.zip, teste la chaîne sur un vrai .3FR, publie le zip.
+# Plan : PORTAGE-WINDOWS.md. Déclenché à la main (workflow_dispatch) ou par un tag v*.
+name: Module Lightroom Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      dnglab_version:
+        description: "Version de dnglab (défaut : celle de l'env ci-dessous, 0.7.2 comme sur Mac)"
+        required: false
+        default: ""
+      rust_toolchain:
+        description: "Toolchain Rust (défaut : stable ; ex. 1.80.0 si la 0.7.2 ne compile pas)"
+        required: false
+        default: ""
+  push:
+    tags: ["v*"]
+
+env:
+  # Même version que le Mac : résultat de conversion identique. À passer en 0.8.0 seulement
+  # si la 0.7.2 ne compile plus ; le patch X2D II s'applique aussi à la 0.8.0 (vérifié).
+  DNGLAB_VERSION: ${{ inputs.dnglab_version || '0.7.2' }}
+  RUST_TOOLCHAIN: ${{ inputs.rust_toolchain || 'stable' }}
+  # Échantillon de test : raw.pixls.us, Hasselblad X2D 100C, licence CC0 (fiche du dépôt :
+  # https://raw.pixls.us/ , ligne « Hasselblad X2D 100C 16bit (4:3) », 203,43 Mo).
+  SAMPLE_URL: https://raw.pixls.us/data/Hasselblad/X2D%20100C/B0000079.3FR
+  SAMPLE_SHA256: dcc5a4abe3498e6f25e89bb491995fd12c3b669d9277c71b45b49210d3e56280
+  SAMPLE_NAME: B0000079.3FR
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write # nécessaire seulement pour gh release upload sur un tag
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v7
+
+      # ---------- dnglab ----------
+      - name: Installer Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Cloner dnglab v${{ env.DNGLAB_VERSION }}
+        run: |
+          git -c core.autocrlf=false clone --depth 1 --branch "v${DNGLAB_VERSION}" \
+            https://github.com/dnglab/dnglab.git dnglab-src
+          rustc --version
+          cargo --version
+
+      - name: Patch X2D II 100C
+        run: python scripts/patch-dnglab-x2d2.py dnglab-src
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: dnglab-src
+          key: dnglab-${{ env.DNGLAB_VERSION }}-${{ env.RUST_TOOLCHAIN }}
+
+      - name: Compiler dnglab.exe
+        working-directory: dnglab-src
+        run: cargo build --release --locked --bin dnglab
+
+      - name: Vérifier dnglab.exe
+        run: |
+          ./dnglab-src/target/release/dnglab.exe --version
+          ./dnglab-src/target/release/dnglab.exe --version | grep -F "${DNGLAB_VERSION}"
+
+      # ---------- exiftool Windows 64 bits ----------
+      # exiftool.org n'héberge plus que la page ; le zip courant est sur SourceForge
+      # (constaté le 23/11/2026 : exiftool.org/exiftool-13.64_64.zip répond 404).
+      # Contenu du zip (13.64) : exiftool-13.64_64/{exiftool(-k).exe, README.txt, exiftool_files/}.
+      - name: Récupérer exiftool (64 bits) et contrôler sa somme SHA-256
+        run: |
+          set -euo pipefail
+          VER="$(curl -fsSL https://exiftool.org/ver.txt | tr -d '[:space:]')"
+          echo "exiftool $VER"
+          ZIP="exiftool-${VER}_64.zip"
+          mkdir -p exiftool-dl
+          if ! curl -fsSL --retry 3 -o "exiftool-dl/$ZIP" "https://exiftool.org/$ZIP"; then
+            echo "Absent de exiftool.org, repli sur SourceForge"
+            curl -fsSL --retry 3 -o "exiftool-dl/$ZIP" \
+              "https://sourceforge.net/projects/exiftool/files/$ZIP/download"
+          fi
+          EXPECTED="$(curl -fsSL https://exiftool.org/checksums.txt \
+            | grep -F "SHA2-256($ZIP)" | head -n1 | sed 's/.*= *//' | tr -d '[:space:]')"
+          if [ -z "$EXPECTED" ]; then
+            EXPECTED="$(curl -fsSL "https://exiftool.org/checksums-${VER}.txt" \
+              | grep -F "SHA2-256($ZIP)" | head -n1 | sed 's/.*= *//' | tr -d '[:space:]')"
+          fi
+          [ -n "$EXPECTED" ] || { echo "Somme publiée introuvable pour $ZIP"; exit 1; }
+          ACTUAL="$(sha256sum "exiftool-dl/$ZIP" | cut -d' ' -f1)"
+          echo "attendu $EXPECTED"
+          echo "obtenu  $ACTUAL"
+          [ "$EXPECTED" = "$ACTUAL" ] || { echo "Somme SHA-256 différente : arrêt"; exit 1; }
+          unzip -q "exiftool-dl/$ZIP" -d exiftool-win
+          echo "EXIFTOOL_VERSION=$VER" >> "$GITHUB_ENV"
+          echo "EXIFTOOL_ZIP_SHA256=$ACTUAL" >> "$GITHUB_ENV"
+          find exiftool-win -maxdepth 2 | head -20
+
+      - name: Vérifier exiftool
+        run: |
+          # make-lrplugin-windows.py renomme exiftool(-k).exe en exiftool.exe ; on teste d'abord
+          # sur une copie pour le contrôle indépendant du paquet.
+          D="$(find exiftool-win -maxdepth 1 -mindepth 1 -type d | head -n1)"
+          cp "$D/exiftool(-k).exe" "$D/exiftool.exe"
+          "$D/exiftool.exe" -ver
+          [ "$("$D/exiftool.exe" -ver | tr -d '\r')" = "$EXIFTOOL_VERSION" ]
+          rm "$D/exiftool.exe"
+
+      # ---------- module ----------
+      - name: Assembler le module
+        run: |
+          D="$(find exiftool-win -maxdepth 1 -mindepth 1 -type d | head -n1)"
+          python scripts/make-lrplugin-windows.py \
+            dnglab-src/target/release/dnglab.exe "$D"
+          ls -la dist dist/2FujiRaw.lrplugin dist/2FujiRaw.lrplugin/bin/windows
+
+      # ---------- tests ----------
+      - name: Échantillon .3FR (raw.pixls.us, CC0)
+        id: sample-cache
+        uses: actions/cache@v6
+        with:
+          path: sample
+          key: sample-${{ env.SAMPLE_SHA256 }}
+
+      - name: Télécharger l'échantillon et contrôler sa somme
+        run: |
+          set -euo pipefail
+          mkdir -p sample
+          if [ ! -f "sample/$SAMPLE_NAME" ]; then
+            curl -fsSL --retry 5 --retry-delay 10 -o "sample/$SAMPLE_NAME" "$SAMPLE_URL"
+          fi
+          ACTUAL="$(sha256sum "sample/$SAMPLE_NAME" | cut -d' ' -f1)"
+          echo "attendu $SAMPLE_SHA256"
+          echo "obtenu  $ACTUAL"
+          [ "$ACTUAL" = "$SAMPLE_SHA256" ] || { rm -f "sample/$SAMPLE_NAME"; echo "Somme différente"; exit 1; }
+
+      - name: Conversion directe (dnglab.exe + exiftool.exe du module)
+        run: |
+          set -euo pipefail
+          BIN=dist/2FujiRaw.lrplugin/bin/windows
+          "$BIN/dnglab.exe" --version
+          "$BIN/exiftool.exe" -ver
+          mkdir -p out
+          "$BIN/dnglab.exe" convert --compression lossless "sample/$SAMPLE_NAME" out/direct.dng
+          "$BIN/exiftool.exe" -Make=FUJIFILM -Model="GFX 100S II" \
+            -UniqueCameraModel="Fujifilm GFX 100S II" -PreviewApplicationName=2FujiRaw \
+            -overwrite_original out/direct.dng
+          MAKE="$("$BIN/exiftool.exe" -s3 -Make out/direct.dng | tr -d '\r')"
+          echo "Make=$MAKE"
+          [ "$MAKE" = "FUJIFILM" ]
+
+      - name: Installer Lua 5.4 (natif Windows)
+        uses: step-security/msvc-dev-cmd@v1
+      - uses: leafo/gh-actions-lua@v13
+        with:
+          luaVersion: "5.4"
+
+      - name: Tests Lua
+        run: |
+          set -euo pipefail
+          lua -v
+          lua lightroom/tests/test_hors_lr.lua
+          lua lightroom/tests/test_windows_chaine.lua dist/2FujiRaw.lrplugin "sample/$SAMPLE_NAME"
+
+      # ---------- publication ----------
+      - name: Sommes SHA-256 (résumé du job)
+        run: |
+          {
+            echo "## Module Lightroom Windows"
+            echo
+            echo "- dnglab : v${DNGLAB_VERSION} patché X2D II, Rust \`${RUST_TOOLCHAIN}\`"
+            echo "- exiftool : ${EXIFTOOL_VERSION} (zip vérifié contre checksums.txt)"
+            echo
+            echo '```'
+            sha256sum dist/2FujiRaw.lrplugin/bin/windows/dnglab.exe dist/2FujiRaw-Lightroom-Windows.zip
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Publier le zip en artefact
+        uses: actions/upload-artifact@v7
+        with:
+          name: 2FujiRaw-Lightroom-Windows
+          path: dist/2FujiRaw-Lightroom-Windows.zip
+          if-no-files-found: error
+
+      - name: Ajouter le zip à la release du tag (si elle existe)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/2FujiRaw-Lightroom-Windows.zip --clobber
+          else
+            echo "::notice::Pas de release $TAG : le zip reste disponible en artefact du run."
+          fi
