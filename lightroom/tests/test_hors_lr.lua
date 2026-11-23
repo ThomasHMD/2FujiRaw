@@ -48,9 +48,11 @@ verifie(Regles.erreurLisible('', 1):find('code 1'), 'erreur vide')
 
 -- Guillemets
 verifie(Regles.guillemets("L'été") == "'L'\\''été'", 'apostrophe échappée')
-local f = io.popen('printf %s ' .. Regles.guillemets("a 'b' $HOME `x`"))
-verifie(f:read('*a') == "a 'b' $HOME `x`", 'passage intact par /bin/sh')
-f:close()
+if package.config:sub(1, 1) == '/' then -- /bin/sh n'existe que sur Mac (la CI Windows saute ce contrôle)
+  local f = io.popen('printf %s ' .. Regles.guillemets("a 'b' $HOME `x`"))
+  verifie(f:read('*a') == "a 'b' $HOME `x`", 'passage intact par /bin/sh')
+  f:close()
+end
 
 -- Chaîne Windows : guillemets (dans un .cmd : % doublé, " retiré, le reste inerte entre guillemets)
 verifie(W.guillemets([[C:\Users\Léa Müller\L'été & co (1)\a.3FR]]) == [["C:\Users\Léa Müller\L'été & co (1)\a.3FR"]],
