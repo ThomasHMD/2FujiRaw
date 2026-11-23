@@ -22,6 +22,14 @@ if not (moduleDir and brut) then
   io.stderr:write('usage : lua lightroom/tests/test_windows_chaine.lua <dossier du module empaquete avec bin\\windows\\> <fichier .3FR>\n')
   os.exit(2)
 end
+-- Lightroom donne des chemins absolus à antislashs : cmd.exe (copy, if exist) ne lit pas « sample/x.3FR ».
+local function absolu(p)
+  p = p:gsub('/', '\\')
+  if p:match('^%a:\\') or p:match('^\\\\') then return p end
+  local cwd = (os.getenv('CD') or io.popen('cd'):read('*l') or '.'):gsub('[\\]+$', '')
+  return cwd .. '\\' .. p
+end
+moduleDir, brut = absolu(moduleDir), absolu(brut)
 local dossierTests = arg[0]:match('^(.*)[/\\][^/\\]*$') or '.'
 local sources = dossierTests .. '/../2FujiRaw.lrplugin'
 package.path = moduleDir .. '/?.lua;' .. sources .. '/?.lua;' .. package.path
