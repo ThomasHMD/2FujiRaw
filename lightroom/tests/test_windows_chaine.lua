@@ -100,8 +100,14 @@ local function parent(p) return (p:gsub('[/\\][^/\\]*$', '')) end
 local function tagsDe(dng, exiftool)
   seq = seq + 1
   local sortie = joindre(TEMP, string.format('2fujiraw-test-tags-%d-%d.txt', os.time(), seq))
-  local ligne = g(exiftool) .. ' -charset filename=UTF8 -s3 -Make -Model ' .. g(dng)
+  -- Même méthode que le module : le nom accentué passe par un fichier d'arguments UTF-8.
+  local args = joindre(TEMP, string.format('2fujiraw-test-args-%d-%d.txt', os.time(), seq))
+  local fa = assert(io.open(args, 'wb'))
+  fa:write('-s3\n-Make\n-Model\n' .. dng .. '\n')
+  fa:close()
+  local ligne = g(exiftool) .. ' -charset filename=UTF8 -@ ' .. g(args)
   cmdRun { ligne .. ' > ' .. g(sortie) .. ' 2>&1' }
+  os.remove(args)
   local t = lire(sortie) or ''
   os.remove(sortie)
   local lignes = {}

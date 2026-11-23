@@ -244,8 +244,16 @@ local function convertirWindows(chemin, mapping, dossier)
   end
   if not LrFileUtils.exists(sortie) then return echec(Outil.t('pas_de_dng', sortie)) end
 
-  local r2 = Outil.executerCmd(Win.commandeExiftool(outils.exiftool, sortie, version()))
-  etapes[2] = { nom = 'exiftool', commande = r2.commande, code = r2.code, sortie = r2.sortie, erreurs = r2.erreurEcriture or r2.erreurs }
+  local arguments = fichierTemporaire('.args')
+  local contenu = Win.argumentsExiftool(sortie, version())
+  local fa = io.open(arguments, 'wb')
+  if not fa then return echec(Outil.t('dossier_impossible', arguments)) end
+  fa:write(contenu)
+  fa:close()
+  local r2 = Outil.executerCmd(Win.commandeExiftool(outils.exiftool, arguments))
+  LrFileUtils.delete(arguments)
+  etapes[2] = { nom = 'exiftool', commande = r2.commande .. '   [-@ : ' .. contenu:gsub('\n', ' | ') .. ']', code = r2.code,
+    sortie = r2.sortie, erreurs = r2.erreurEcriture or r2.erreurs }
   if r2.erreurEcriture or r2.code ~= 0 then
     -- Un DNG qui ne se dit pas Fuji n'a rien à faire dans le catalogue : on ne le laisse pas.
     if LrFileUtils.exists(sortie) then LrFileUtils.delete(sortie) end

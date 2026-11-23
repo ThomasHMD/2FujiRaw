@@ -65,14 +65,21 @@ function W.commandeDnglab(dnglab, source, sortie)
 end
 
 -- 2. exiftool : le DNG se dit Fuji GFX 100S II (ConversionEngine.spoofDNGIdentity)
-function W.commandeExiftool(exiftool, dng, version)
-  local g = W.guillemets
+-- Le nom du DNG passe par un fichier d'arguments UTF-8 (-@), pas par la ligne de commande : exiftool.exe lit sa ligne
+-- de commande dans la page de code ANSI et perd les accents (« File not found », vu sur la CI Windows le 23/11/2026),
+-- alors qu'il lit un fichier d'arguments en UTF-8 avec -charset filename=UTF8 (méthode recommandée par sa doc).
+-- Le fichier d'arguments lui-même est dans le dossier de travail, au nom ASCII.
+function W.argumentsExiftool(dng, version)
   return table.concat({
-    g(exiftool), '-charset', 'filename=UTF8',
-    '-Make=FUJIFILM', g('-Model=GFX 100S II'), g('-UniqueCameraModel=Fujifilm GFX 100S II'),
+    '-Make=FUJIFILM', '-Model=GFX 100S II', '-UniqueCameraModel=Fujifilm GFX 100S II',
     '-PreviewApplicationName=2FujiRaw', '-PreviewApplicationVersion=' .. tostring(version),
-    '-PreviewDateTime=now', '-PreviewColorSpace=sRGB', '-overwrite_original', g(dng),
-  }, ' ')
+    '-PreviewDateTime=now', '-PreviewColorSpace=sRGB', '-overwrite_original', dng,
+  }, '\n') .. '\n'
+end
+
+function W.commandeExiftool(exiftool, fichierArguments)
+  local g = W.guillemets
+  return table.concat({ g(exiftool), '-charset', 'filename=UTF8', '-@', g(fichierArguments) }, ' ')
 end
 
 function W.ligneAvecRedirections(commande, sortie, erreurs)

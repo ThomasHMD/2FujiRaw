@@ -65,10 +65,12 @@ verifie(W.guillemets('') == '""', 'guillemets : vide')
 verifie(W.commandeDnglab([[C:\P l\dnglab.exe]], [[D:\é'ü & co\a.3FR]], [[D:\é'ü & co\DNG-Fuji-Converted\a.dng]])
   == [["C:\P l\dnglab.exe" convert --compression lossless "D:\é'ü & co\a.3FR" "D:\é'ü & co\DNG-Fuji-Converted\a.dng"]],
   'commande dnglab')
-verifie(W.commandeExiftool([[C:\P l\exiftool.exe]], [[D:\x y\a.dng]], '0.3.0')
-  == [["C:\P l\exiftool.exe" -charset filename=UTF8 -Make=FUJIFILM "-Model=GFX 100S II" ]]
-  .. [["-UniqueCameraModel=Fujifilm GFX 100S II" -PreviewApplicationName=2FujiRaw -PreviewApplicationVersion=0.3.0 ]]
-  .. [[-PreviewDateTime=now -PreviewColorSpace=sRGB -overwrite_original "D:\x y\a.dng"]], 'commande exiftool')
+verifie(W.commandeExiftool([[C:\P l\exiftool.exe]], [[C:\Temp\2fujiraw-lr-1-1.args]])
+  == [["C:\P l\exiftool.exe" -charset filename=UTF8 -@ "C:\Temp\2fujiraw-lr-1-1.args"]], 'commande exiftool')
+verifie(W.argumentsExiftool([[D:\é'ü & co\a.dng]], '0.3.0')
+  == '-Make=FUJIFILM\n-Model=GFX 100S II\n-UniqueCameraModel=Fujifilm GFX 100S II\n-PreviewApplicationName=2FujiRaw\n'
+  .. '-PreviewApplicationVersion=0.3.0\n-PreviewDateTime=now\n-PreviewColorSpace=sRGB\n-overwrite_original\n'
+  .. [[D:\é'ü & co\a.dng]] .. '\n', 'arguments exiftool (fichier -@, nom en UTF-8 intact)')
 
 -- Script .cmd
 local ligne = W.ligneAvecRedirections('"C:\\x y\\t.exe" -ver', 'C:\\T\\a.out', 'C:\\T\\a.log')
