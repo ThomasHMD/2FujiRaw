@@ -245,7 +245,7 @@ local function convertirWindows(chemin, mapping, dossier)
   if not LrFileUtils.exists(sortie) then return echec(Outil.t('pas_de_dng', sortie)) end
 
   local arguments = fichierTemporaire('.args')
-  local contenu = Win.argumentsExiftool(sortie, version())
+  local contenu = Win.argumentsExiftool(sortie, version(), chemin)
   local fa = io.open(arguments, 'wb')
   if not fa then return echec(Outil.t('dossier_impossible', arguments)) end
   fa:write(contenu)

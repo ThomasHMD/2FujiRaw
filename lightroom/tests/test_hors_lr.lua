@@ -71,6 +71,11 @@ verifie(W.argumentsExiftool([[D:\é'ü & co\a.dng]], '0.3.0')
   == '-Make=FUJIFILM\n-Model=GFX 100S II\n-UniqueCameraModel=Fujifilm GFX 100S II\n-PreviewApplicationName=2FujiRaw\n'
   .. '-PreviewApplicationVersion=0.3.0\n-PreviewDateTime=now\n-PreviewColorSpace=sRGB\n-overwrite_original\n'
   .. [[D:\é'ü & co\a.dng]] .. '\n', 'arguments exiftool (fichier -@, nom en UTF-8 intact)')
+do
+  local debut = '-tagsFromFile\n' .. [[D:\é\a.3FR]] .. '\n-BaselineExposure\n-Make=FUJIFILM\n'
+  verifie(W.argumentsExiftool([[D:\x\a.dng]], '0.3.0', [[D:\é\a.3FR]]):sub(1, #debut) == debut,
+    'BaselineExposure recopiée du .3FR')
+end
 
 -- Script .cmd
 local ligne = W.ligneAvecRedirections('"C:\\x y\\t.exe" -ver', 'C:\\T\\a.out', 'C:\\T\\a.log')

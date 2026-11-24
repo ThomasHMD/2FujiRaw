@@ -69,8 +69,11 @@ end
 -- de commande dans la page de code ANSI et perd les accents (« File not found », vu sur la CI Windows le 23/11/2026),
 -- alors qu'il lit un fichier d'arguments en UTF-8 avec -charset filename=UTF8 (méthode recommandée par sa doc).
 -- Le fichier d'arguments lui-même est dans le dossier de travail, au nom ASCII.
-function W.argumentsExiftool(dng, version)
-  return table.concat({
+-- source : le .3FR d'origine, dont on recopie BaselineExposure (le X2D II l'enregistre photo par photo, jusqu'à +2 EV ;
+-- dnglab ne le reprend pas et Lightroom montrait le DNG plus sombre d'autant, signalé par le testeur le 24/11/2026).
+function W.argumentsExiftool(dng, version, source)
+  local copie = source and { '-tagsFromFile', source, '-BaselineExposure' } or {}
+  return table.concat(copie, '\n') .. (source and '\n' or '') .. table.concat({
     '-Make=FUJIFILM', '-Model=GFX 100S II', '-UniqueCameraModel=Fujifilm GFX 100S II',
     '-PreviewApplicationName=2FujiRaw', '-PreviewApplicationVersion=' .. tostring(version),
     '-PreviewDateTime=now', '-PreviewColorSpace=sRGB', '-overwrite_original', dng,

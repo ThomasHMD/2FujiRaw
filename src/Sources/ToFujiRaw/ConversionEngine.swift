@@ -186,7 +186,7 @@ struct ConversionEngine {
             )
         }
         progressHandler?("PATCHING FUJI TAGS", 0.8)
-        let result = try spoofDNGIdentity(at: outputFile)
+        let result = try spoofDNGIdentity(at: outputFile, exposureSource: source)
         progressHandler?("FINALIZING", 1.0)
         return result
     }
@@ -266,11 +266,18 @@ struct ConversionEngine {
         return outputFile
     }
 
+    /// `exposureSource` : le RAW d'origine dont on recopie `BaselineExposure`. Le X2D II l'enregistre photo par
+    /// photo (jusqu'à +2 EV) et dnglab ne le reprend pas : sans lui, Lightroom montre le DNG plus sombre d'autant.
     private func spoofDNGIdentity(
         at outputFile: URL,
-        sourceLeicaModel: String? = nil
+        sourceLeicaModel: String? = nil,
+        exposureSource: URL? = nil
     ) throws -> URL {
-        var args = [
+        var args: [String] = []
+        if let exposureSource {
+            args += ["-tagsFromFile", exposureSource.path, "-BaselineExposure"]
+        }
+        args += [
             "-Make=\(mapping.targetMake ?? "FUJIFILM")",
             "-Model=\((options.preserveOriginalLeicaBodyInfo ? sourceLeicaModel : nil) ?? (mapping.targetModel ?? "GFX 100S II"))",
             "-UniqueCameraModel=\(mapping.targetUniqueCameraModel ?? "Fujifilm GFX 100S II")",
