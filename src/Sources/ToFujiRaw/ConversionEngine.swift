@@ -282,7 +282,7 @@ struct ConversionEngine {
             "-Model=\((options.preserveOriginalLeicaBodyInfo ? sourceLeicaModel : nil) ?? (mapping.targetModel ?? "GFX 100S II"))",
             "-UniqueCameraModel=\(mapping.targetUniqueCameraModel ?? "Fujifilm GFX 100S II")",
             "-PreviewApplicationName=2FujiRaw",
-            "-PreviewApplicationVersion=0.1.0",
+            "-PreviewApplicationVersion=0.3.0",
             "-PreviewDateTime=now",
             "-PreviewColorSpace=sRGB",
         ]

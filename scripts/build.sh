@@ -38,7 +38,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
     <key>CFBundleExecutable</key><string>2FujiRaw</string>
     <key>CFBundleIdentifier</key><string>com.thomashmd.twofujiraw</string>
     <key>CFBundleVersion</key><string>2</string>
-    <key>CFBundleShortVersionString</key><string>0.2.0</string>
+    <key>CFBundleShortVersionString</key><string>0.3.0</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>LSMinimumSystemVersion</key><string>13.0</string>

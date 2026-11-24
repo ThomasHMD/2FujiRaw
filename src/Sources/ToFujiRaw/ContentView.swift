@@ -107,7 +107,7 @@ struct ContentView: View {
                     .foregroundStyle(Theme.inkSoft)
             }
             Spacer()
-            RetroChip(label: "v0.1.0", color: Theme.ink)
+            RetroChip(label: "v0.3.0", color: Theme.ink)
         }
     }
 

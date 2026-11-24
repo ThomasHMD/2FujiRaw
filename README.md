@@ -2,14 +2,15 @@
 
 # 2FujiRaw
 
-> **New, v0.2.0 (14/11/2026): the Lightroom Classic plug-in.** The conversion
-> runs from inside Lightroom, on the selected photos, and the Fuji DNG comes
-> back stacked on the original with its keywords, rating and edits. Leica DNG
-> conversion is now in the app.
-> ➜ [Download v0.2.0](https://github.com/ThomasHMD/2FujiRaw/releases/tag/v0.2.0) ·
-> [What the plug-in does](#lightroom-classic-plug-in)
+> **New, v0.3.0 (24/11/2026): the Lightroom Classic plug-in now runs on
+> Windows (beta), and an exposure fix.** The plug-in carries its own tools and
+> needs no app on Windows (Hasselblad `.3FR` / `.FFF` only). The fix: on some
+> photos, the Fuji DNGs came out up to 2 EV darker than the original in
+> Lightroom. DNGs converted with 0.2.0 from such photos should be redone.
+> ➜ [Download v0.3.0](https://github.com/ThomasHMD/2FujiRaw/releases/tag/v0.3.0) ·
+> [Windows](#windows-beta) · [Exposure fix](#exposure-correction)
 
-A macOS app that converts RAW files from non-Fuji cameras into DNGs "disguised"
+A macOS app (and a Lightroom Classic plug-in for macOS and Windows) that converts RAW files from non-Fuji cameras into DNGs "disguised"
 as a **Fuji GFX 100S II**, to unlock the **native Fujifilm Film Simulations**
 (Provia, Velvia, Astia, Classic Chrome, Classic Neg, Eterna, Acros, Pro Neg
 Hi/Std, Nostalgic Neg, Reala Ace…) in Lightroom Classic.
@@ -33,6 +34,10 @@ The Leica conversion is a contribution from [smartfuse](https://github.com/smart
 ### ➜ [**2FujiRaw-Lightroom.zip**, the Lightroom Classic plug-in](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw-Lightroom.zip)
 
 ~15 MB · the same conversion from Lightroom, app included (see [Lightroom Classic plug-in](#lightroom-classic-plug-in))
+
+### ➜ [**2FujiRaw-Lightroom-Windows.zip**, the Lightroom Classic plug-in for Windows (beta)](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw-Lightroom-Windows.zip)
+
+The same plug-in for Windows, with its own tools, no app needed (see [Windows (beta)](#windows-beta))
 
 See all versions and their changelog in
 [Releases](https://github.com/ThomasHMD/2FujiRaw/releases) ·
@@ -88,6 +93,14 @@ show up in the "Camera Matching" tab.
 
 The `dnglab` and `exiftool` binaries are bundled in the `.app` and called as
 subprocesses. The Leica → X2D chain is native Swift.
+
+### Exposure correction
+
+The X2D II stores in each `.3FR` an exposure correction specific to the photo
+(the DNG tag `BaselineExposure`, up to +2 EV). dnglab does not copy it, so on
+those photos the Fuji DNGs came out up to 2 EV darker than the original in
+Lightroom. Since v0.3.0, exiftool copies it back from the original RAW, on Mac
+and on Windows. **DNGs converted with 0.2.0 from such photos should be redone.**
 
 ### Bundled X2D template
 
@@ -150,8 +163,11 @@ selected photos.
 [latest release](https://github.com/ThomasHMD/2FujiRaw/releases/latest), unzip
 it, then File ▸ Plug-in Manager ▸ Add ▸ `2FujiRaw.lrplugin`. The plug-in ships
 with its own copy of the app (no need to install the `.dmg`) and lifts the macOS
-quarantine itself on first use. Apple Silicon Mac only, Lightroom Classic 10 or
-newer.
+quarantine itself on first use. Apple Silicon Mac, Lightroom Classic 10 or
+newer (for Windows, see below).
+
+On a failure, the message gives the path of a diagnostic log, `2FujiRaw.log`
+(on Mac as well as on Windows).
 
 Without an embedded copy, the plug-in looks for the app in `/Applications`, then
 `~/Applications`, or at the path set in the Plug-in Manager.
@@ -160,6 +176,29 @@ The sources are in [`lightroom/`](./lightroom): `Convertir.lua` (window and loop
 `Conversion.lua` (one photo), `Outil.lua` (CLI call), `Regles.lua` (the
 decisions, SDK-free). The Lightroom SDK has no entry point in the import: the
 conversion runs afterwards.
+
+### Windows (beta)
+
+The plug-in also runs on Windows, in beta: download
+[`2FujiRaw-Lightroom-Windows.zip`](https://github.com/ThomasHMD/2FujiRaw/releases/latest/download/2FujiRaw-Lightroom-Windows.zip)
+from the [latest release](https://github.com/ThomasHMD/2FujiRaw/releases/latest).
+There is no app on Windows: the plug-in bundles `dnglab.exe` (0.7.2 with the X2D
+II patch, built by GitHub Actions on `windows-latest`, workflow
+[`windows.yml`](./.github/workflows/windows.yml)) and ExifTool for Windows.
+
+1. Unzip the file.
+2. In Lightroom Classic: File ▸ Plug-in Manager ▸ Add ▸ the `2FujiRaw.lrplugin`
+   folder.
+3. Click **Test the tools** ("Tester les outils" in the French interface): it
+   shows the versions of dnglab and ExifTool found.
+
+Limits of the beta:
+- Hasselblad `.3FR` / `.FFF` only; **Leica stays Mac only**.
+- The menu label stays in French: **Convertir en Fuji GFX 100S II…**
+- On a failure, the message gives the path of a `2FujiRaw.log` file: send it with
+  your report.
+- Tested on the Windows CI (end-to-end conversion, accented paths) and by a first
+  user on Windows 11.
 
 ## Build from source (dev)
 
